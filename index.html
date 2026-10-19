@@ -2,30 +2,45 @@
 <div id="sgz">
 <style>
 #sgz{font-family:"Noto Sans",system-ui,-apple-system,sans-serif;color:#1f2937;background:#fff;padding:16px;max-width:1200px;margin:auto;border-radius:8px}
+#sgz .header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
 #sgz h1{font-size:22px;margin:0 0 2px;color:#611232;font-weight:700;}
-#sgz .sub{color:#a57f2c;font-size:13.5px;margin-bottom:14px;font-weight:600;}
+#sgz .sub{color:#a57f2c;font-size:13.5px;font-weight:600;}
+#sgz .badge-interno{background:#fdfcfb;border:1px solid #a57f2c;color:#611232;padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:6px;}
 #sgz .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
 #sgz select,#sgz button{font-size:13px;padding:6px 10px;border:1px solid #a57f2c;border-radius:6px;background:#fdfcfb;color:#611232;cursor:pointer;font-weight:500;}
 #sgz select:focus,#sgz button:focus{outline:none;border-color:#611232;}
 #sgz .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 #sgz .chip{border-radius:14px;padding:4px 12px;font-size:12px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer}
 #sgz .chip.on{color:#fff;border-color:transparent}
-#sgz .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:14px}
+
+#sgz .kpi-section-title{font-size:13px;font-weight:700;color:#611232;margin:12px 0 6px;text-transform:uppercase;letter-spacing:0.5px;}
+#sgz .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:10px}
 #sgz .kpi{border:1px solid #e5e7eb;border-radius:8px;padding:9px 12px;background:#faf9f8}
 #sgz .kpi b{display:block;font-size:18px;margin-top:2px;color:#611232;}
 #sgz .kpi span{font-size:11.5px;color:#6b7280}
+
 #sgz .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:14px}
 #sgz .card{border:1px solid #e5e7eb;border-radius:8px;padding:12px;background:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
 #sgz .card h3{font-size:14px;margin:0 0 8px;color:#611232;font-weight:600;}
 #sgz .cv{position:relative;height:280px}
+
 #sgz table{border-collapse:collapse;width:100%;font-size:12.5px}
 #sgz th,#sgz td{padding:6px 8px;border-bottom:1px solid #eee;text-align:right}
 #sgz th:first-child,#sgz td:first-child{text-align:left}
 #sgz th{cursor:pointer;background:#611232;color:#fff;position:sticky;top:0;font-weight:500;}
 #sgz tr.sel td:first-child{font-weight:700;color:#611232}
+
+#sgz .fuente-footer{margin-top:14px;font-size:12px;color:#6b7280;text-align:right;font-style:italic;}
 </style>
-<h1>Sargazo y turismo en Quintana Roo</h1>
-<div class="sub">Llegadas de turistas y ocupación hotelera, 2026 vs 2025</div>
+
+<div class="header-row">
+  <div>
+    <h1>Sargazo y turismo en Quintana Roo</h1>
+    <div class="sub">Llegadas de turistas y ocupación hotelera, 2026 vs 2025</div>
+  </div>
+  <div class="badge-interno">Para uso interno</div>
+</div>
+
 <div class="bar">
   <label>Nivel: <select id="nivel">
     <option value="destinos">Destinos</option>
@@ -36,7 +51,9 @@
   <button id="btnLimp">Limpiar selección</button>
 </div>
 <div class="chips" id="chips"></div>
-<div class="kpis" id="kpis"></div>
+
+<div id="kpis-container"></div>
+
 <div class="grid">
   <div class="card"><h3>Variación interanual mensual de llegadas (%)</h3><div class="cv"><canvas id="cA"></canvas></div></div>
   <div class="card"><h3 id="tB">Llegadas mensuales 2025 vs 2026 (foco)</h3><div class="cv"><canvas id="cB"></canvas></div></div>
@@ -45,7 +62,14 @@
   <div class="card"><h3>Llegadas: cambio en la variación interanual, may–jul menos ene–abr (pp)</h3><div class="cv"><canvas id="cD"></canvas></div></div>
   <div class="card"><h3>Ocupación: cambio en la diferencia interanual, may–jul menos ene–abr (pp)</h3><div class="cv"><canvas id="cF"></canvas></div></div>
 </div>
-<div class="card" style="margin-top:14px;overflow-x:auto"><h3>Ranking del nivel seleccionado</h3><div id="tabla"></div></div>
+
+<div class="card" style="margin-top:14px;overflow-x:auto">
+  <h3>Ranking del nivel seleccionado</h3>
+  <div id="tabla"></div>
+</div>
+
+<div class="fuente-footer">Fuente: Sistema de Información Turística de Quintana Roo</div>
+
 <script>/**
  * Skipped minification because the original files appears to be already minified.
  * Original file: /npm/chart.js@4.4.1/dist/chart.umd.js
@@ -82,6 +106,7 @@ let selected=[TOTAL_NAME], custom=[], sortKey="d", sortDir=-1, charts={};
 const $=id=>document.getElementById(id);
 const fP=(v,d=2)=>v==null?"n.d.":(v>0?"+":"")+v.toFixed(d)+"%";
 const fPP=v=>v==null?"n.d.":(v>0?"+":"")+v.toFixed(2)+" pp";
+const fO=v=>v==null?"n.d.":v.toFixed(2)+"%";
 const fN=v=>v==null?"n.d.":Math.round(v).toLocaleString("es-MX");
 const mean=a=>{const x=a.filter(v=>v!=null);return x.length?x.reduce((p,q)=>p+q,0)/x.length:null;};
 
@@ -203,31 +228,37 @@ function render(){
 
   const afluenciaPctAnual = foco.z.v;
   const afluenciaAbsAnual = foco.z.diff;
-  
   const varPctEneAbr = (foco.p.v != null && foco.z.v != null) ? foco.z.v - foco.p.v : null;
   const turEneAbrTot = foco.p.a;
   const turMayJulTot = foco.z.a;
   const varAbsEneAbr = (turMayJulTot != null && turEneAbrTot != null) ? turMayJulTot - turEneAbrTot : null;
 
   const ocupAnualDiff = foco.z.do; 
-  const ocupAnualPct = (foco.z.o25 != null && foco.z.o25 > 0) ? ((foco.z.o26 / foco.z.o25) - 1) * 100 : null;
-  
   const cambioOcupEneAbrPP = (foco.z.o26 != null && foco.p.o26 != null) ? foco.z.o26 - foco.p.o26 : null;
-  const cambioOcupEneAbrPct = (foco.p.o26 != null && foco.p.o26 > 0) ? ((foco.z.o26 / foco.p.o26) - 1) * 100 : null;
 
-  const k = [
+  const kAfluencia = [
+    ["Foco", `<b style="font-size:15px">${foco.u.name}</b>`, "#002f2a"],
     ["Var. afluencia may–jul (vs año pasado)", fP(afluenciaPctAnual)],
     ["Dif. afluencia may–jul (vs año pasado)", afluenciaAbsAnual == null ? "n.d." : (afluenciaAbsAnual > 0 ? "+" : "") + fN(afluenciaAbsAnual)],
     ["Var. afluencia may–jul (vs ene–abr)", fP(varPctEneAbr)],
-    ["Dif. afluencia may–jul (vs ene–abr)", varAbsEneAbr == null ? "n.d." : (varAbsEneAbr > 0 ? "+" : "") + fN(varAbsEneAbr)],
-    ["Ocupación may–jul (vs año pasado - pp)", fPP(ocupAnualDiff)],
-    ["Ocupación may–jul (vs año pasado - %)", fP(ocupAnualPct)],
-    ["Ocupación may–jul (vs ene–abr - pp)", cambioOcupEneAbrPP == null ? "n.d." : (cambioOcupEneAbrPP > 0 ? "+" : "") + cambioOcupEneAbrPP.toFixed(2) + " pp"],
-    ["Ocupación may–jul (vs ene–abr - %)", fP(cambioOcupEneAbrPct)]
+    ["Dif. afluencia may–jul (vs ene–abr)", varAbsEneAbr == null ? "n.d." : (varAbsEneAbr > 0 ? "+" : "") + fN(varAbsEneAbr)]
   ];
 
-  $("kpis").innerHTML=`<div class="kpi" style="background:#fdfcfb;border-left:4px solid #002f2a;"><span>Foco</span><b style="font-size:15px">${foco.u.name}</b></div>`+
-    k.map(([t,v])=>`<div class="kpi"><span>${t}</span><b>${v}</b></div>`).join("");
+  const kOcupacion = [
+    ["Ocupación may–jul (vs año pasado)", fPP(ocupAnualDiff)],
+    ["Ocupación may–jul (vs ene–abr)", fPP(cambioOcupEneAbrPP)]
+  ];
+
+  $("kpis-container").innerHTML = `
+    <div class="kpi-section-title">Afluencia Turística</div>
+    <div class="kpis">
+      <div class="kpi" style="background:#fdfcfb;border-left:4px solid #002f2a;"><span>Foco</span><b>${foco.u.name}</b></div>` +
+      kAfluencia.slice(1).map(([t,v])=>`<div class="kpi"><span>${t}</span><b>${v}</b></div>`).join("") +
+    `</div>
+    <div class="kpi-section-title">Ocupación Hotelera</div>
+    <div class="kpis">` +
+      kOcupacion.map(([t,v])=>`<div class="kpi"><span>${t}</span><b>${v}</b></div>`).join("") +
+    `</div>`;
   
   draw("cA",{type:"bar",data:{labels:MESES,datasets:selected.map((n,i)=>({label:n,data:byName[n].s.v,backgroundColor:PAL[i%PAL.length]}))},
     options:{...common, plugins: {...common.plugins, tooltip: tooltipConfig}, scales:{y:{title:{display:true,text:"%"}}}},plugins:[band]});
